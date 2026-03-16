@@ -20,22 +20,24 @@ select:focus,input:focus{border-color:#38bdf8}
 .mic{background:#1d4ed8;border:none;border-radius:9px;padding:10px 14px;cursor:pointer;font-size:18px;flex-shrink:0}
 .mic.on{background:#dc2626;animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.sugg{background:#0f172a;border:1px solid #334155;border-radius:9px;margin-top:3px;display:none;max-height:160px;overflow-y:auto;position:relative;z-index:10}
+.sugg{background:#0f172a;border:1px solid #334155;border-radius:9px;margin-top:3px;display:none;max-height:160px;overflow-y:auto;z-index:10;position:relative}
 .sugg div{padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #1e293b}
 .sugg div:hover{background:#1e293b;color:#38bdf8}
 .chem-list{margin-top:12px;display:flex;flex-direction:column;gap:8px}
-.chem-item{background:#0f172a;border:1px solid #334155;border-radius:9px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.chem-item{background:#0f172a;border:1px solid #1d4ed8;border-radius:9px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#7dd3fc}
 .chem-item span{color:#94a3b8;font-size:12px;margin-left:8px}
-.chem-item button{background:#7f1d1d;border:none;border-radius:6px;color:#fca5a5;padding:4px 8px;cursor:pointer;font-size:12px}
+.chem-item button{background:#7f1d1d;border:none;border-radius:6px;color:#fca5a5;padding:4px 8px;cursor:pointer;font-size:12px;flex-shrink:0}
 .add-btn{width:100%;margin-top:10px;padding:11px;background:#1e3a5f;border:1px solid #1d4ed8;border-radius:9px;color:#7dd3fc;font-size:14px;font-weight:600;cursor:pointer}
 .add-btn:hover{background:#1d4ed8;color:#fff}
 .divider{border:none;border-top:1px solid #334155;margin:16px 0}
 .btn{width:100%;margin-top:8px;padding:13px;background:linear-gradient(135deg,#0ea5e9,#2563eb);border:none;border-radius:11px;color:#fff;font-size:15px;font-weight:700;cursor:pointer}
-.btn:disabled{opacity:.4}
-.toast{margin-top:12px;padding:10px;border-radius:9px;text-align:center;font-size:13px;font-weight:600;display:none}
-.ok{background:#064e3b;color:#6ee7b7;display:block}
-.err{background:#7f1d1d;color:#fca5a5;display:block}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.toast{margin-top:12px;padding:12px;border-radius:9px;text-align:center;font-size:13px;font-weight:600}
+.toast.ok{background:#064e3b;color:#6ee7b7}
+.toast.err{background:#7f1d1d;color:#fca5a5}
+.toast.hide{display:none}
 .count{display:inline-block;background:#1d4ed8;color:#fff;border-radius:20px;padding:2px 8px;font-size:11px;margin-left:6px}
+.empty-list{text-align:center;color:#475569;font-size:12px;padding:10px}
 </style>
 </head>
 <body>
@@ -76,7 +78,7 @@ select:focus,input:focus{border-color:#38bdf8}
   </div>
   <div class="sugg" id="sugg"></div>
 
-  <label>Or pick from list</label>
+  <label style="margin-top:10px">Or pick from list</label>
   <select id="chemSel" onchange="pickChem(this.value)">
     <option value="">-- Select Chemical --</option>
     <option>Silicon</option><option>Glauber Salt</option><option>Eropen-R</option><option>Sequestering Agent</option><option>Avco Fix PDC</option><option>Novapret SPF</option><option>Meta</option><option>Acid</option><option>Salt</option><option>Ot Conc</option><option>Cra</option><option>Silvatol</option><option>Peroxide</option><option>Tubingal</option><option>Aticres</option><option>Bainder</option><option>Silicone</option><option>Textport</option><option>Supradet</option><option>Sera Gal</option><option>C Scamas</option><option>Nutra Acid</option><option>Softnar</option><option>Lavelling</option><option>Jingen Neutra Acid</option><option>Antiback Stainer</option><option>Anticreasing Agent</option><option>Meta Bi Sulphite</option><option>Soda Ash</option><option>Caustic Soda</option><option>Hydrogen Peroxide</option><option>Detergent</option><option>Leveling Agent</option><option>Potassium Permanganate</option><option>Softener</option><option>Saftnar</option>
@@ -87,17 +89,17 @@ select:focus,input:focus{border-color:#38bdf8}
     <div style="flex:1"><select id="unit"><option>KG</option><option>Liter</option><option>Gram</option><option>ML</option><option>Drum</option><option>Bag</option></select></div>
   </div>
 
-  <button class="add-btn" onclick="addChem()">➕ Add Chemical to List</button>
+  <button class="add-btn" onclick="addChem()">➕ Add to List</button>
 
-  <div class="chem-list" id="chemList"></div>
+  <div class="chem-list" id="chemList"><div class="empty-list">No chemicals added yet</div></div>
 
   <hr class="divider"/>
 
   <label>📝 Notes (Optional)</label>
   <input id="notes" placeholder="Any remarks..."/>
 
-  <button class="btn" onclick="submitLog()">✅ Submit All</button>
-  <div class="toast" id="toast"></div>
+  <button class="btn" id="submitBtn" onclick="submitLog()">✅ Submit All Chemicals</button>
+  <div class="toast hide" id="toast"></div>
 </div>
 
 <script>
@@ -109,53 +111,112 @@ const alias={"meta":"Meta Bi Sulphite","metabi":"Meta Bi Sulphite","sodium meta"
 
 let chemItems=[];
 
+function showToast(msg,type){
+  const t=document.getElementById("toast");
+  t.className="toast "+type;
+  t.textContent=msg;
+  if(type==="ok"){setTimeout(()=>{t.className="toast hide"},4000)}
+}
+
 function matchChem(t){t=t.toLowerCase().trim();if(alias[t])return alias[t];for(let k in alias)if(t.includes(k))return alias[k];return chems.find(c=>c.toLowerCase().includes(t))||t}
-function showSugg(v){const b=document.getElementById("sugg");if(!v){b.style.display="none";return}const m=chems.filter(c=>c.toLowerCase().includes(v.toLowerCase())).slice(0,5);if(!m.length){b.style.display="none";return}b.innerHTML=m.map(x=>`<div onclick="pickChem('${x}')">${x}</div>`).join("");b.style.display="block"}
-function pickChem(n){document.getElementById("chemIn").value=n;document.getElementById("chemSel").value=n;document.getElementById("sugg").style.display="none"}
+
+function showSugg(v){
+  const b=document.getElementById("sugg");
+  if(!v){b.style.display="none";return}
+  const m=chems.filter(c=>c.toLowerCase().includes(v.toLowerCase())).slice(0,5);
+  if(!m.length){b.style.display="none";return}
+  b.innerHTML=m.map(x=>`<div onclick="pickChem('${x}')">${x}</div>`).join("");
+  b.style.display="block";
+}
+
+function pickChem(n){
+  document.getElementById("chemIn").value=n;
+  document.getElementById("chemSel").value=n;
+  document.getElementById("sugg").style.display="none";
+}
 
 let rec;
-function toggleMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert("Use Chrome for voice");return}const btn=document.getElementById("micBtn");if(rec){rec.stop();return}rec=new SR();rec.lang="en-US";rec.onresult=e=>{const raw=e.results[0][0].transcript;const matched=matchChem(raw);pickChem(matched);btn.classList.remove("on");rec=null};rec.onerror=()=>{btn.classList.remove("on");rec=null};rec.onend=()=>{btn.classList.remove("on");rec=null};rec.start();btn.classList.add("on")}
+function toggleMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert("Use Chrome for voice input");return}
+  const btn=document.getElementById("micBtn");
+  if(rec){rec.stop();return}
+  rec=new SR();rec.lang="en-US";
+  rec.onresult=e=>{const raw=e.results[0][0].transcript;pickChem(matchChem(raw));btn.classList.remove("on");rec=null};
+  rec.onerror=()=>{btn.classList.remove("on");rec=null};
+  rec.onend=()=>{btn.classList.remove("on");rec=null};
+  rec.start();btn.classList.add("on");
+}
 
 function addChem(){
-  const chem=document.getElementById("chemIn").value||document.getElementById("chemSel").value;
+  const chem=document.getElementById("chemIn").value.trim()||document.getElementById("chemSel").value;
   const amount=document.getElementById("amount").value;
   const unit=document.getElementById("unit").value;
-  const toast=document.getElementById("toast");
-  if(!chem||!amount){toast.className="toast err";toast.textContent="⚠️ Enter chemical name and amount!";return}
-  toast.style.display="none";toast.className="toast";
-  chemItems.push({chemical:chem,amount:parseFloat(amount),unit});
+  if(!chem){showToast("⚠️ Please enter or select a chemical!","err");return}
+  if(!amount||parseFloat(amount)<=0){showToast("⚠️ Please enter a valid amount!","err");return}
+  chemItems.push({chemical:chem,amount:parseFloat(amount),unit:unit});
   renderChemList();
   document.getElementById("chemIn").value="";
   document.getElementById("chemSel").selectedIndex=0;
   document.getElementById("amount").value="";
   document.getElementById("sugg").style.display="none";
+  showToast("✅ "+chem+" added to list!","ok");
 }
 
-function removeChem(i){chemItems.splice(i,1);renderChemList()}
+function removeChem(i){
+  chemItems.splice(i,1);
+  renderChemList();
+}
 
 function renderChemList(){
-  const list=document.getElementById("chemList");
   document.getElementById("chemCount").textContent=chemItems.length;
-  if(!chemItems.length){list.innerHTML="";return}
-  list.innerHTML=chemItems.map((c,i)=>`<div class="chem-item">🧴 ${c.chemical} <span>${c.amount} ${c.unit}</span><button onclick="removeChem(${i})">✕</button></div>`).join("");
+  const list=document.getElementById("chemList");
+  if(!chemItems.length){list.innerHTML='<div class="empty-list">No chemicals added yet</div>';return}
+  list.innerHTML=chemItems.map((c,i)=>`
+    <div class="chem-item">
+      <span>🧴 ${c.chemical}</span>
+      <span>${c.amount} ${c.unit}</span>
+      <button onclick="removeChem(${i})">✕ Remove</button>
+    </div>`).join("");
 }
 
 async function submitLog(){
   const op=document.getElementById("op").value;
-  const toast=document.getElementById("toast");
-  if(!op){toast.className="toast err";toast.textContent="⚠️ Please select your name!";return}
-  if(!chemItems.length){toast.className="toast err";toast.textContent="⚠️ Add at least one chemical!";return}
-  const base={operator:op,buyer:document.getElementById("buyer").value,style:document.getElementById("style").value,color:document.getElementById("color").value,garment_quantity:parseInt(document.getElementById("qty").value)||0,notes:document.getElementById("notes").value,logged_at:new Date().toISOString()};
+  if(!op){showToast("⚠️ Please select your name!","err");return}
+  if(!chemItems.length){showToast("⚠️ Please add at least one chemical!","err");return}
+  const btn=document.getElementById("submitBtn");
+  btn.disabled=true;btn.textContent="Submitting...";
+  const base={
+    operator:op,
+    buyer:document.getElementById("buyer").value,
+    style:document.getElementById("style").value,
+    color:document.getElementById("color").value,
+    garment_quantity:parseInt(document.getElementById("qty").value)||0,
+    notes:document.getElementById("notes").value,
+    logged_at:new Date().toISOString()
+  };
   try{
-    const rows=chemItems.map(c=>({...base,...c}));
-    const r=await fetch(`${SURL}/rest/v1/chemical_logs`,{method:"POST",headers:{"Content-Type":"application/json","apikey":SKEY,"Authorization":`Bearer ${SKEY}`,"Prefer":"return=minimal"},body:JSON.stringify(rows)});
+    const rows=chemItems.map(c=>({...base,chemical:c.chemical,amount:c.amount,unit:c.unit}));
+    const r=await fetch(`${SURL}/rest/v1/chemical_logs`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":SKEY,"Authorization":`Bearer ${SKEY}`,"Prefer":"return=minimal"},
+      body:JSON.stringify(rows)
+    });
     if(r.ok){
-      toast.className="toast ok";toast.textContent=`✅ ${chemItems.length} chemical(s) logged successfully!`;
+      showToast(`✅ ${chemItems.length} chemical(s) submitted successfully!`,"ok");
       chemItems=[];renderChemList();
       document.querySelectorAll("input").forEach(e=>e.value="");
       document.querySelectorAll("select").forEach(e=>e.selectedIndex=0);
-    }else throw new Error();
-  }catch{toast.className="toast err";toast.textContent="❌ Failed! Check connection."}
+    }else{
+      const err=await r.text();
+      console.error(err);
+      showToast("❌ Server error! Please try again.","err");
+    }
+  }catch(e){
+    console.error(e);
+    showToast("❌ Network error! Check your connection.","err");
+  }
+  btn.disabled=false;btn.textContent="✅ Submit All Chemicals";
 }
 </script>
 </body>
