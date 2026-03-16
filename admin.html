@@ -3,137 +3,278 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Admin Dashboard - Chemical Tracking</title>
+<title>FAL Command Center</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}
+body{font-family:'Rajdhani',sans-serif;background:#000;color:#00ffff;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at center,#001a2e 0%,#000 70%);z-index:-2}
+body::after{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background-image:linear-gradient(rgba(0,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,255,0.03) 1px,transparent 1px);background-size:40px 40px;z-index:-1;animation:gridMove 20s linear infinite}
+@keyframes gridMove{0%{background-position:0 0}100%{background-position:40px 40px}}
+.scanline{position:fixed;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,#00ffff,transparent);animation:scan 4s linear infinite;z-index:1000;opacity:.3;pointer-events:none}
+@keyframes scan{0%{top:0}100%{top:100%}}
+
+/* LOGIN */
 .login{display:flex;align-items:center;justify-content:center;min-height:100vh}
-.lcard{background:#1e293b;padding:32px;border-radius:16px;width:320px;text-align:center}
-.lcard h2{color:#38bdf8;margin-bottom:4px}
-.lcard p{color:#475569;font-size:12px;margin-bottom:20px}
-.lcard input{width:100%;padding:11px;background:#0f172a;border:1px solid #334155;border-radius:9px;color:#e2e8f0;font-size:14px;outline:none;margin-bottom:10px}
-.lcard input:focus{border-color:#38bdf8}
-.lcard button{width:100%;padding:12px;background:linear-gradient(135deg,#0ea5e9,#2563eb);border:none;border-radius:9px;color:#fff;font-weight:700;font-size:15px;cursor:pointer}
-#loginErr{color:#f87171;font-size:12px;margin-top:8px}
-.dash{display:none;padding:20px}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px}
-header h1{color:#38bdf8;font-size:18px}
-.hbtns{display:flex;gap:8px}
-.hbtns button{background:#1e293b;border:1px solid #334155;color:#94a3b8;padding:7px 13px;border-radius:8px;cursor:pointer;font-size:12px}
-.hbtns button:hover{border-color:#38bdf8;color:#38bdf8}
+.lcard{background:rgba(0,20,40,0.9);border:1px solid rgba(0,255,255,0.3);border-radius:4px;padding:36px;width:320px;text-align:center;position:relative;backdrop-filter:blur(10px)}
+.lcard::before{content:'';position:absolute;top:-1px;left:20px;right:20px;height:2px;background:linear-gradient(90deg,transparent,#00ffff,transparent)}
+.corner{position:absolute;width:14px;height:14px;border-color:#00ffff;border-style:solid}
+.corner.tl{top:-1px;left:-1px;border-width:2px 0 0 2px}
+.corner.tr{top:-1px;right:-1px;border-width:2px 2px 0 0}
+.corner.bl{bottom:-1px;left:-1px;border-width:0 0 2px 2px}
+.corner.br{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+.lcard h2{font-family:'Orbitron',monospace;color:#00ffff;font-size:16px;letter-spacing:4px;margin-bottom:4px;text-shadow:0 0 20px #00ffff}
+.lcard p{color:#005f7a;font-size:11px;letter-spacing:2px;margin-bottom:24px}
+.lcard input{width:100%;padding:11px;background:rgba(0,255,255,0.03);border:1px solid rgba(0,255,255,0.2);border-radius:2px;color:#00ffff;font-size:14px;outline:none;margin-bottom:10px;font-family:'Rajdhani',sans-serif;letter-spacing:2px}
+.lcard input:focus{border-color:#00ffff;box-shadow:0 0 15px rgba(0,255,255,0.2)}
+.lcard button{width:100%;padding:12px;background:rgba(0,255,255,0.08);border:1px solid rgba(0,255,255,0.4);border-radius:2px;color:#00ffff;font-weight:700;font-size:13px;cursor:pointer;font-family:'Orbitron',monospace;letter-spacing:3px;transition:all .3s}
+.lcard button:hover{background:rgba(0,255,255,0.15);box-shadow:0 0 20px rgba(0,255,255,0.2)}
+#loginErr{color:#ff0050;font-size:11px;margin-top:8px;font-family:'Orbitron',monospace;letter-spacing:1px}
+
+/* DASHBOARD */
+.dash{display:none;padding:20px;max-width:1200px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;padding-bottom:16px;border-bottom:1px solid rgba(0,255,255,0.15)}
+.logo{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:#00ffff;letter-spacing:4px;text-shadow:0 0 20px #00ffff}
+.logo span{color:#00ff88;font-size:11px;display:block;letter-spacing:2px;margin-top:2px}
+.hbtns{display:flex;gap:8px;align-items:center}
+.hbtn{background:rgba(0,255,255,0.05);border:1px solid rgba(0,255,255,0.2);color:#00aacc;padding:7px 14px;border-radius:2px;cursor:pointer;font-size:11px;font-family:'Orbitron',monospace;letter-spacing:1px;transition:all .3s}
+.hbtn:hover{border-color:#00ffff;color:#00ffff;box-shadow:0 0 10px rgba(0,255,255,0.2)}
+#clock{font-family:'Orbitron',monospace;font-size:12px;color:#005f7a}
+
+/* STATS */
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
-.stat{background:#1e293b;border-radius:12px;padding:16px;text-align:center}
-.stat .val{font-size:26px;font-weight:700;color:#38bdf8}
-.stat .lbl{font-size:11px;color:#64748b;margin-top:3px}
+@media(min-width:600px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:rgba(0,20,40,0.8);border:1px solid rgba(0,255,255,0.2);border-radius:4px;padding:16px;text-align:center;position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#00ffff,transparent)}
+.stat .val{font-size:22px;font-weight:900;color:#00ffff;font-family:'Orbitron',monospace;text-shadow:0 0 15px rgba(0,255,255,0.5)}
+.stat .lbl{font-size:10px;color:#005f7a;margin-top:4px;letter-spacing:1px;text-transform:uppercase}
+.stat.green .val{color:#00ff88;text-shadow:0 0 15px rgba(0,255,136,0.5)}
+.stat.green::before{background:linear-gradient(90deg,transparent,#00ff88,transparent)}
+.stat.orange .val{color:#ffaa00;text-shadow:0 0 15px rgba(255,170,0,0.5)}
+.stat.orange::before{background:linear-gradient(90deg,transparent,#ffaa00,transparent)}
+.stat.pink .val{color:#ff00aa;text-shadow:0 0 15px rgba(255,0,170,0.5)}
+.stat.pink::before{background:linear-gradient(90deg,transparent,#ff00aa,transparent)}
+
+/* TOP CHEMICAL */
+.top-chem-banner{background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.3);border-radius:4px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.top-chem-banner .label{font-size:10px;color:#005f7a;letter-spacing:2px;font-family:'Orbitron',monospace}
+.top-chem-banner .name{font-size:16px;color:#00ff88;font-family:'Orbitron',monospace;font-weight:700;text-shadow:0 0 15px rgba(0,255,136,0.5)}
+.top-chem-banner .count{font-size:11px;color:#00aacc;letter-spacing:1px}
+
+/* CHARTS */
 .charts{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:20px}
-.box{background:#1e293b;border-radius:12px;padding:16px}
-.box h3{font-size:12px;color:#94a3b8;margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+@media(min-width:700px){.charts{grid-template-columns:1fr 1fr}}
+.box{background:rgba(0,20,40,0.8);border:1px solid rgba(0,255,255,0.15);border-radius:4px;padding:16px;position:relative}
+.box::before{content:'';position:absolute;top:0;left:20px;right:20px;height:1px;background:linear-gradient(90deg,transparent,rgba(0,255,255,0.3),transparent)}
+.box h3{font-family:'Orbitron',monospace;font-size:10px;color:#00aacc;margin-bottom:14px;letter-spacing:2px;text-transform:uppercase}
+.box.full{grid-column:1/-1}
+
+/* FILTERS */
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-.filters select,.filters input{padding:8px 10px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-size:12px;outline:none;flex:1;min-width:120px}
+.filters select,.filters input{padding:8px 10px;background:rgba(0,255,255,0.03);border:1px solid rgba(0,255,255,0.15);border-radius:2px;color:#00ccdd;font-size:12px;outline:none;flex:1;min-width:120px;font-family:'Rajdhani',sans-serif}
+.filters select option{background:#001a2e}
 .fbtns{display:flex;gap:8px;margin-bottom:14px}
-.fbtns button{padding:8px 14px;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600}
-.fb1{background:#0ea5e9;color:#fff}.fb2{background:#475569;color:#fff}
+.fbtns button{padding:7px 14px;border:none;border-radius:2px;font-size:11px;cursor:pointer;font-weight:600;font-family:'Orbitron',monospace;letter-spacing:1px}
+.fb1{background:rgba(0,150,255,0.2);border:1px solid rgba(0,150,255,0.4);color:#00aaff}
+.fb2{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#666}
+
+/* TABLE */
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:12px}
-th{color:#475569;text-align:left;padding:7px 8px;border-bottom:1px solid #334155;font-weight:600;text-transform:uppercase;font-size:10px;white-space:nowrap}
-td{padding:8px;border-bottom:1px solid #1e293b;color:#cbd5e1;white-space:nowrap}
-tr:hover td{background:#263347}
-.badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;background:#1e3a5f;color:#7dd3fc}
-.empty{text-align:center;color:#475569;padding:24px;font-size:13px}
+th{color:#005f7a;text-align:left;padding:8px;border-bottom:1px solid rgba(0,255,255,0.1);font-weight:600;text-transform:uppercase;font-size:10px;white-space:nowrap;font-family:'Orbitron',monospace;letter-spacing:1px}
+td{padding:8px;border-bottom:1px solid rgba(0,255,255,0.05);color:#00aacc;white-space:nowrap;font-family:'Rajdhani',sans-serif}
+tr:hover td{background:rgba(0,255,255,0.04);color:#00ffff}
+.badge{display:inline-block;padding:2px 8px;border-radius:2px;font-size:10px;font-weight:600;background:rgba(0,255,255,0.1);border:1px solid rgba(0,255,255,0.3);color:#00ffff;font-family:'Orbitron',monospace}
+.badge.green{background:rgba(0,255,136,0.1);border-color:rgba(0,255,136,0.3);color:#00ff88}
+.empty{text-align:center;color:#003a4a;padding:24px;font-size:12px;font-family:'Orbitron',monospace;letter-spacing:2px}
 </style>
 </head>
 <body>
+<div class="scanline"></div>
+
+<!-- LOGIN -->
 <div class="login" id="loginScreen">
   <div class="lcard">
-    <h2>🔐 Admin Login</h2>
-    <p>Fakir Apparels — Chemical Tracking</p>
-    <input type="password" id="passInput" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')login()"/>
-    <button onclick="login()">Login →</button>
+    <div class="corner tl"></div><div class="corner tr"></div>
+    <div class="corner bl"></div><div class="corner br"></div>
+    <h2>⬡ COMMAND CENTER</h2>
+    <p>Fakir Apparels Ltd — Restricted Access</p>
+    <input type="password" id="passInput" placeholder="ENTER ACCESS CODE" onkeydown="if(event.key==='Enter')login()"/>
+    <button onclick="login()">AUTHENTICATE →</button>
     <p id="loginErr"></p>
   </div>
 </div>
+
+<!-- DASHBOARD -->
 <div class="dash" id="dashboard">
   <header>
-    <h1>📊 Chemical Dashboard</h1>
+    <div class="logo">⬡ FAL COMMAND CENTER<span>Chemical Intelligence System v2.0</span></div>
     <div class="hbtns">
-      <button onclick="loadData()">🔄 Refresh</button>
-      <button onclick="logout()">Logout</button>
+      <span id="clock">--:--:--</span>
+      <button class="hbtn" onclick="loadData()">⟳ REFRESH</button>
+      <button class="hbtn" onclick="logout()">⎋ LOGOUT</button>
     </div>
   </header>
+
+  <!-- STATS -->
   <div class="stats">
     <div class="stat"><div class="val" id="totalLogs">-</div><div class="lbl">Total Logs</div></div>
-    <div class="stat"><div class="val" id="todayLogs">-</div><div class="lbl">Today</div></div>
-    <div class="stat"><div class="val" id="topChem">-</div><div class="lbl">Top Chemical</div></div>
-    <div class="stat"><div class="val" id="topOp">-</div><div class="lbl">Top Operator</div></div>
+    <div class="stat green"><div class="val" id="todayLogs">-</div><div class="lbl">Today's Logs</div></div>
+    <div class="stat orange"><div class="val" id="totalQty">-</div><div class="lbl">Total Garments</div></div>
+    <div class="stat pink"><div class="val" id="totalChem">-</div><div class="lbl">Total Chemicals (KG/L)</div></div>
   </div>
+
+  <!-- TOP CHEMICAL BANNER -->
+  <div class="top-chem-banner">
+    <div>
+      <div class="label">◈ MOST USED CHEMICAL</div>
+      <div class="name" id="topChemName">-</div>
+    </div>
+    <div style="text-align:right">
+      <div class="label">USAGE COUNT</div>
+      <div class="count" id="topChemCount">-</div>
+    </div>
+    <div style="text-align:right">
+      <div class="label">TOTAL AMOUNT</div>
+      <div class="count" id="topChemAmt">-</div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
   <div class="charts">
-    <div class="box"><h3>Chemical Usage (Top 10)</h3><canvas id="chemChart" height="200"></canvas></div>
-    <div class="box"><h3>Operator Activity (Top 10)</h3><canvas id="opChart" height="200"></canvas></div>
+    <div class="box"><h3>◈ Chemical Usage — Top 10</h3><canvas id="chemChart" height="220"></canvas></div>
+    <div class="box"><h3>◈ Operator Activity — Top 10</h3><canvas id="opChart" height="220"></canvas></div>
+    <div class="box"><h3>◈ Daily Log Trend (Last 7 Days)</h3><canvas id="trendChart" height="180"></canvas></div>
+    <div class="box"><h3>◈ Chemical Amount by Type (KG/L)</h3><canvas id="amtChart" height="180"></canvas></div>
   </div>
-  <div class="box">
-    <h3>All Logs</h3>
+
+  <!-- LOG TABLE -->
+  <div class="box full" style="margin-bottom:20px">
+    <h3>◈ All Logs — Data Feed</h3>
     <div class="filters">
       <input type="date" id="filterDate"/>
       <select id="filterChem"><option value="">All Chemicals</option><option>Silicon</option><option>Glauber Salt</option><option>Eropen-R</option><option>Sequestering Agent</option><option>Avco Fix PDC</option><option>Novapret SPF</option><option>Meta</option><option>Acid</option><option>Salt</option><option>Ot Conc</option><option>Cra</option><option>Silvatol</option><option>Peroxide</option><option>Tubingal</option><option>Aticres</option><option>Bainder</option><option>Silicone</option><option>Textport</option><option>Supradet</option><option>Sera Gal</option><option>C Scamas</option><option>Nutra Acid</option><option>Softnar</option><option>Lavelling</option><option>Jingen Neutra Acid</option><option>Antiback Stainer</option><option>Anticreasing Agent</option><option>Meta Bi Sulphite</option><option>Soda Ash</option><option>Caustic Soda</option><option>Hydrogen Peroxide</option><option>Detergent</option><option>Leveling Agent</option><option>Potassium Permanganate</option><option>Softener</option><option>Saftnar</option></select>
       <select id="filterOp"><option value="">All Operators</option><option>Raedh</option><option>Hasan</option><option>Sabbir (বরিশাল)</option><option>Rahinur</option><option>Sochin</option><option>Rahman</option><option>Sabbir</option><option>Rabbani</option><option>Rashid</option><option>Nurullah</option><option>Junayed</option><option>Momrul</option><option>Mostafiz</option><option>Saju</option><option>Mahfuz</option><option>Robin</option><option>Mahabub</option><option>Sojib</option><option>Hossain</option><option>Nayeem</option><option>Jewel</option><option>Lipon</option><option>Biplob</option><option>Showrob</option><option>Mahim</option><option>Parvez</option><option>Keshob</option><option>Mohasin</option><option>Jakir</option><option>Mizan</option><option>Sariful</option><option>Kawsar - 1</option><option>Kawser - 2</option><option>Sudorshon</option><option>Jahangir</option><option>Lokman</option><option>Yamin</option><option>Arif</option><option>Kamal</option><option>Babul</option><option>Sumon</option><option>Rifat</option></select>
     </div>
     <div class="fbtns">
-      <button class="fb1" onclick="applyFilters()">Filter</button>
-      <button class="fb2" onclick="clearFilters()">Clear</button>
+      <button class="fb1" onclick="applyFilters()">⟳ FILTER</button>
+      <button class="fb2" onclick="clearFilters()">✕ CLEAR</button>
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>#</th><th>Date & Time</th><th>Operator</th><th>Buyer</th><th>Style</th><th>Color</th><th>Qty</th><th>Chemical</th><th>Amount</th><th>Notes</th></tr></thead>
-        <tbody id="logsTable"><tr><td colspan="10" class="empty">Loading...</td></tr></tbody>
+        <thead><tr><th>#</th><th>Timestamp</th><th>Operator</th><th>Buyer</th><th>Style</th><th>Color</th><th>Qty</th><th>Chemical</th><th>Amount</th><th>Notes</th></tr></thead>
+        <tbody id="logsTable"><tr><td colspan="10" class="empty">// LOADING DATA STREAM...</td></tr></tbody>
       </table>
     </div>
   </div>
 </div>
+
 <script>
 const SURL="https://ynnfvmezkrqkuiggprtb.supabase.co";
 const SKEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlubmZ2bWV6a3Jxa3VpZ2dwcnRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MjU3MTksImV4cCI6MjA4OTIwMTcxOX0.b3ykhcba-oDxWfjeMQvK4_4-VkGVeLeapVEfoXlztjw";
 const PASS="fakir@2024";
-let allLogs=[],cc,oc;
+let allLogs=[],charts={};
+
+setInterval(()=>{document.getElementById("clock").textContent=new Date().toLocaleTimeString('en-US',{hour12:false})},1000);
 
 function login(){
   if(document.getElementById("passInput").value===PASS){
     document.getElementById("loginScreen").style.display="none";
     document.getElementById("dashboard").style.display="block";
     loadData();
-  }else{document.getElementById("loginErr").textContent="❌ Wrong password!"}
+  }else{document.getElementById("loginErr").textContent="✕ ACCESS DENIED — INVALID CODE"}
 }
 function logout(){document.getElementById("loginScreen").style.display="flex";document.getElementById("dashboard").style.display="none";document.getElementById("passInput").value=""}
 
 async function loadData(){
   try{
-    const r=await fetch(`${SURL}/rest/v1/chemical_logs?order=logged_at.desc&limit=1000`,{headers:{"apikey":SKEY,"Authorization":`Bearer ${SKEY}`}});
-    allLogs=await r.json();renderAll(allLogs);
-  }catch{document.getElementById("logsTable").innerHTML='<tr><td colspan="10" class="empty">⚠️ Failed to load.</td></tr>'}
+    const r=await fetch(`${SURL}/rest/v1/chemical_logs?order=logged_at.desc&limit=2000`,{headers:{"apikey":SKEY,"Authorization":`Bearer ${SKEY}`}});
+    allLogs=await r.json();
+    renderAll(allLogs);
+  }catch(e){document.getElementById("logsTable").innerHTML='<tr><td colspan="10" class="empty">✕ DATA STREAM INTERRUPTED</td></tr>'}
 }
 
 function renderAll(logs){
   const today=new Date().toISOString().slice(0,10);
   document.getElementById("totalLogs").textContent=logs.length;
   document.getElementById("todayLogs").textContent=logs.filter(l=>l.logged_at?.slice(0,10)===today).length;
-  const cc2={},oc2={};
-  logs.forEach(l=>{cc2[l.chemical]=(cc2[l.chemical]||0)+1;oc2[l.operator]=(oc2[l.operator]||0)+1});
-  const topC=Object.entries(cc2).sort((a,b)=>b[1]-a[1])[0];
-  const topO=Object.entries(oc2).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById("topChem").textContent=topC?topC[0].split(" ")[0]:"-";
-  document.getElementById("topOp").textContent=topO?topO[0].split(" ")[0]:"-";
-  const t10c=Object.entries(cc2).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  const t10o=Object.entries(oc2).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  if(cc)cc.destroy();if(oc)oc.destroy();
-  cc=new Chart(document.getElementById("chemChart"),{type:"bar",data:{labels:t10c.map(x=>x[0]),datasets:[{data:t10c.map(x=>x[1]),backgroundColor:"#0ea5e9",borderRadius:5}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#64748b",font:{size:9}}},y:{ticks:{color:"#64748b"},grid:{color:"#1e293b"}}}}});
-  oc=new Chart(document.getElementById("opChart"),{type:"bar",data:{labels:t10o.map(x=>x[0]),datasets:[{data:t10o.map(x=>x[1]),backgroundColor:"#6366f1",borderRadius:5}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#64748b",font:{size:9}}},y:{ticks:{color:"#64748b"},grid:{color:"#1e293b"}}}}});
+
+  // Total garments
+  const uniqueSessions=new Map();
+  logs.forEach(l=>{
+    const key=`${l.operator}-${l.logged_at?.slice(0,10)}-${l.style}-${l.color}`;
+    if(!uniqueSessions.has(key))uniqueSessions.set(key,l.garment_quantity||0);
+  });
+  const totalQty=Array.from(uniqueSessions.values()).reduce((a,b)=>a+b,0);
+  document.getElementById("totalQty").textContent=totalQty.toLocaleString();
+
+  // Total chemical amount
+  const totalAmt=logs.reduce((a,l)=>a+(parseFloat(l.amount)||0),0);
+  document.getElementById("totalChem").textContent=totalAmt.toFixed(1);
+
+  // Chemical counts and amounts
+  const chemCount={},chemAmt={},opCount={};
+  logs.forEach(l=>{
+    if(l.chemical){
+      chemCount[l.chemical]=(chemCount[l.chemical]||0)+1;
+      chemAmt[l.chemical]=(chemAmt[l.chemical]||0)+(parseFloat(l.amount)||0);
+    }
+    if(l.operator)opCount[l.operator]=(opCount[l.operator]||0)+1;
+  });
+
+  // Top chemical banner
+  const topC=Object.entries(chemCount).sort((a,b)=>b[1]-a[1])[0];
+  if(topC){
+    document.getElementById("topChemName").textContent=topC[0];
+    document.getElementById("topChemCount").textContent=topC[1]+" uses";
+    document.getElementById("topChemAmt").textContent=(chemAmt[topC[0]]||0).toFixed(1)+" KG/L";
+  }
+
+  // Charts
+  const t10c=Object.entries(chemCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const t10o=Object.entries(opCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const t10a=Object.entries(chemAmt).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+  // Last 7 days trend
+  const days=[];const dayCounts=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const ds=d.toISOString().slice(0,10);
+    days.push(ds.slice(5));
+    dayCounts.push(logs.filter(l=>l.logged_at?.slice(0,10)===ds).length);
+  }
+
+  const chartOpts=(color)=>({plugins:{legend:{display:false}},scales:{x:{ticks:{color:"#005f7a",font:{size:9}},grid:{color:"rgba(0,255,255,0.05)"}},y:{ticks:{color:"#005f7a"},grid:{color:"rgba(0,255,255,0.05)"}}}});
+
+  Object.values(charts).forEach(c=>c.destroy());
+
+  charts.chem=new Chart(document.getElementById("chemChart"),{type:"bar",data:{labels:t10c.map(x=>x[0]),datasets:[{data:t10c.map(x=>x[1]),backgroundColor:t10c.map((_,i)=>i===0?"rgba(0,255,136,0.6)":"rgba(0,255,255,0.3)"),borderColor:t10c.map((_,i)=>i===0?"#00ff88":"#00ffff"),borderWidth:1,borderRadius:4}]},options:chartOpts()});
+
+  charts.op=new Chart(document.getElementById("opChart"),{type:"bar",data:{labels:t10o.map(x=>x[0]),datasets:[{data:t10o.map(x=>x[1]),backgroundColor:"rgba(100,0,255,0.3)",borderColor:"#6400ff",borderWidth:1,borderRadius:4}]},options:chartOpts()});
+
+  charts.trend=new Chart(document.getElementById("trendChart"),{type:"line",data:{labels:days,datasets:[{data:dayCounts,borderColor:"#00ffff",backgroundColor:"rgba(0,255,255,0.05)",borderWidth:2,pointBackgroundColor:"#00ffff",pointRadius:4,tension:.4,fill:true}]},options:chartOpts()});
+
+  charts.amt=new Chart(document.getElementById("amtChart"),{type:"bar",data:{labels:t10a.map(x=>x[0]),datasets:[{data:t10a.map(x=>x[1].toFixed(1)),backgroundColor:"rgba(255,170,0,0.3)",borderColor:"#ffaa00",borderWidth:1,borderRadius:4}]},options:{...chartOpts(),plugins:{legend:{display:false}}}});
+
   renderTable(logs);
 }
 
 function renderTable(logs){
   const tb=document.getElementById("logsTable");
-  if(!logs.length){tb.innerHTML='<tr><td colspan="10" class="empty">No logs found.</td></tr>';return}
-  tb.innerHTML=logs.map((l,i)=>`<tr><td>${i+1}</td><td>${l.logged_at?new Date(l.logged_at).toLocaleString():"-"}</td><td>${l.operator||"-"}</td><td>${l.buyer||"-"}</td><td>${l.style||"-"}</td><td>${l.color||"-"}</td><td>${l.garment_quantity||0}</td><td>${l.chemical||"-"}</td><td><span class="badge">${l.amount||0} ${l.unit||""}</span></td><td>${l.notes||"-"}</td></tr>`).join("");
+  if(!logs.length){tb.innerHTML='<tr><td colspan="10" class="empty">// NO DATA FOUND</td></tr>';return}
+  tb.innerHTML=logs.map((l,i)=>`<tr>
+    <td style="color:#003a4a">${i+1}</td>
+    <td>${l.logged_at?new Date(l.logged_at).toLocaleString():"-"}</td>
+    <td style="color:#00ff88">${l.operator||"-"}</td>
+    <td>${l.buyer||"-"}</td>
+    <td>${l.style||"-"}</td>
+    <td>${l.color||"-"}</td>
+    <td>${l.garment_quantity||0}</td>
+    <td style="color:#00ffff">${l.chemical||"-"}</td>
+    <td><span class="badge green">${l.amount||0} ${l.unit||""}</span></td>
+    <td style="color:#005f7a">${l.notes||"-"}</td>
+  </tr>`).join("");
 }
 
 function applyFilters(){
@@ -149,4 +290,4 @@ function applyFilters(){
 function clearFilters(){document.getElementById("filterDate").value="";document.getElementById("filterChem").value="";document.getElementById("filterOp").value="";renderTable(allLogs)}
 </script>
 </body>
-  </html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </html>
